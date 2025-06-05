@@ -33,7 +33,7 @@ const MiniCard = ({ id, name, sprite, types, isFavorite, onToggleFavorite, onCli
       <ImageSection>
         <Sprite src={sprite} alt={name} />
         <FavoriteIcon
-          isFavorite={isFavorite}
+          $isFavorite={isFavorite}
           onClick={(e) => {
             e.stopPropagation(); // evita disparar o onClick do Card
             onToggleFavorite();

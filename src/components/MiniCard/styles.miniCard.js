@@ -73,7 +73,7 @@ export const FavoriteIcon = styled.button`
   top: 8px;
   right: 8px;
   background: transparent;
-  color: ${({ isFavorite }) => (isFavorite ? "#f5b301" : "#ccc")};
+  color: ${({ $isFavorite }) => ($isFavorite ? "#f5b301" : "#ccc")};
   border: none;
   cursor: pointer;
     &:hover {

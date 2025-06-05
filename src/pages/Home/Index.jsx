@@ -12,6 +12,7 @@ import {
 } from "./styles.home";
 import MiniCard from "@/components/MiniCard/Index";
 import Modal from "@/components/Modal/Index";
+import PokemonDetail from "@/components/PokemonDetail/Index";
 import { getKantoPokedex } from "@/services/pokedexService";
 import { getPokemonByNameOrId } from "@/services/pokemonService";
 
@@ -149,10 +150,16 @@ const Layout = () => {
     });
   }, [searchResult, pokemonsData, typeFilter, showOnlyFavorites, favorites]);
 
-  const abrirModal = (pokemon) => {
-    setSelectedPokemon(pokemon);
-    setModalOpen(true);
+  const abrirModal = async (pokemon) => {
+    try {
+      const fullData = await getPokemonByNameOrId(pokemon.name); // ou pokemon.id
+      setSelectedPokemon(fullData);
+      setModalOpen(true);
+    } catch (error) {
+      console.error("Erro ao carregar detalhes do pokémon:", error);
+    }
   };
+
   const fecharModal = () => {
     setSelectedPokemon(null);
     setModalOpen(false);
@@ -197,9 +204,7 @@ const Layout = () => {
         </GridContainer>
         {isModalOpen && selectedPokemon && (
           <Modal isOpen={isModalOpen} onClose={fecharModal}>
-            <h2>{selectedPokemon.name}</h2>
-            <img src={selectedPokemon.sprite} alt={selectedPokemon.name} />
-            <p>Tipos: {selectedPokemon.types.join(", ")}</p>
+            <PokemonDetail pokemon={selectedPokemon} />
           </Modal>
         )}
         {!searchResult && currentIndex < pokedex.length && !showOnlyFavorites && (

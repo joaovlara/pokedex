@@ -1,23 +1,23 @@
 import styled from "styled-components";
 
 export const Overlay = styled.div`
+  display: ${({ isOpen }) => (isOpen ? "flex" : "none")};
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
-  display: ${({ isOpen }) => (isOpen ? 'flex' : 'none')};
-  align-items: center;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
   justify-content: center;
-  z-index: 999;
+  align-items: center;
+  z-index: 1000;
 `;
 
 export const ModalContent = styled.div`
-  background: white;
-  padding: 2rem;
-  border-radius: 10px;
+  background-color: white;
+  border-radius: 15px;
   width: 90%;
-  max-width: 400px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  max-width: 960px;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 1%;
 `;
