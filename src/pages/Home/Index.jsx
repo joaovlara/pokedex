@@ -1,12 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  Container,
-  MainContent,
-  SearchInput,
-  Dropdown,
-  GridContainer,
-  LoadMoreButton,
-} from "./styles.home";
+import { Container, MainContent, SearchInput, Dropdown, GridContainer, LoadMoreButton, FilterBar, FavoritesButton } from "./styles.home";
 import MiniCard from "@/components/MiniCard/Index";
 import { getKantoPokedex } from "@/services/pokedexService";
 import { getPokemonByNameOrId } from "@/services/pokemonService";
@@ -14,18 +7,19 @@ import { getPokemonByNameOrId } from "@/services/pokemonService";
 const BATCH_SIZE = 20;
 
 const Layout = () => {
-  const [pokedex, setPokedex] = useState([]); // nomes dos pokemons
-  const [pokemonsData, setPokemonsData] = useState([]); // dados dos pokemons
-  const [currentIndex, setCurrentIndex] = useState(0); // controle de offset
+  const [pokedex, setPokedex] = useState([]);
+  const [pokemonsData, setPokemonsData] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState(""); // estado da busca
-  const [searchResult, setSearchResult] = useState(null); // resultado da busca
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchResult, setSearchResult] = useState(null);
+  const [typeFilter, setTypeFilter] = useState("");
+  const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
   const [favorites, setFavorites] = useState(() => {
     const stored = localStorage.getItem("favorites");
     return stored ? new Set(JSON.parse(stored)) : new Set();
   });
 
-  // Montagem: busca nomes da Pokédex
   useEffect(() => {
     const fetchPokedexNames = async () => {
       try {
@@ -40,14 +34,12 @@ const Layout = () => {
     fetchPokedexNames();
   }, []);
 
-  // busca os primeiros 20
   useEffect(() => {
     if (pokedex.length > 0) {
       fetchNextBatch();
     }
   }, [pokedex]);
 
-  // carregar o próximo lote de pokémons
   const fetchNextBatch = async () => {
     if (isLoading) return;
     setIsLoading(true);
@@ -89,7 +81,6 @@ const Layout = () => {
     });
   };
 
-  // Função para buscar o Pokémon quando o usuário pressionar Enter
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
       setSearchResult(null);
@@ -114,7 +105,6 @@ const Layout = () => {
     }
   };
 
-  // Handler para o evento keyDown no input
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -122,8 +112,31 @@ const Layout = () => {
     }
   };
 
-  // Decide qual lista mostrar: resultado da busca ou lista paginada
-  const displayPokemons = searchResult ? [searchResult] : pokemonsData;
+  const pokemonTypes = [
+    "",
+    "normal", "fire", "water", "grass", "electric",
+    "ice", "fighting", "poison", "ground", "flying",
+    "psychic", "bug", "rock", "ghost", "dragon",
+    "dark", "steel", "fairy"
+  ];
+
+  const applyFilters = (pokemons) => {
+    let filtered = [...pokemons];
+
+    if (typeFilter) {
+      filtered = filtered.filter((pokemon) =>
+        pokemon.types.includes(typeFilter)
+      );
+    }
+
+    if (showOnlyFavorites) {
+      filtered = filtered.filter((pokemon) => favorites.has(pokemon.id));
+    }
+
+    return filtered;
+  };
+
+  const displayPokemons = applyFilters(searchResult ? [searchResult] : pokemonsData);
 
   return (
     <Container>
@@ -134,10 +147,26 @@ const Layout = () => {
           onChange={(e) => setSearchTerm(e.target.value)}
           onKeyDown={handleKeyDown}
         />
-        <Dropdown>
-          <option value="">Tipo</option>
-        </Dropdown>
 
+        <FilterBar>
+          <Dropdown
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+          >
+            {pokemonTypes.map((type) => (
+              <option key={type} value={type}>
+                {type ? type.charAt(0).toUpperCase() + type.slice(1) : "Tipo"}
+              </option>
+            ))}
+          </Dropdown>
+
+          <FavoritesButton
+            onClick={() => setShowOnlyFavorites((prev) => !prev)}
+            active={showOnlyFavorites}
+          >
+            {showOnlyFavorites ? "Favoritos ativos" : "Favoritos"}
+          </FavoritesButton>
+        </FilterBar>
         <GridContainer>
           {displayPokemons.map((pokemon) => (
             <MiniCard
@@ -151,8 +180,7 @@ const Layout = () => {
             />
           ))}
         </GridContainer>
-
-        {!searchResult && currentIndex < pokedex.length && (
+        {!searchResult && currentIndex < pokedex.length && !showOnlyFavorites && (
           <LoadMoreButton onClick={fetchNextBatch} disabled={isLoading}>
             {isLoading ? "Carregando..." : "Carregar mais"}
           </LoadMoreButton>
@@ -161,6 +189,5 @@ const Layout = () => {
     </Container>
   );
 };
-
 
 export default Layout;

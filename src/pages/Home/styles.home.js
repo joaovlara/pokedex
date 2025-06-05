@@ -56,3 +56,18 @@ export const LoadMoreButton = styled.button`
     background-color: #2a3691;
   }
 `;
+
+export const FilterBar = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+`;
+
+export const FavoritesButton = styled.button`
+  padding: 8px 12px;
+  border-radius: 8px;
+  background-color: ${({ active }) => (active ? "#f0c040" : "#e0e0e0")};
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+`;
