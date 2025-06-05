@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { POKEMON_TYPES } from "@/data/data";
 import {
   Container,
   MainContent,
@@ -14,27 +15,6 @@ import { getKantoPokedex } from "@/services/pokedexService";
 import { getPokemonByNameOrId } from "@/services/pokemonService";
 
 const BATCH_SIZE = 20;
-const POKEMON_TYPES = [
-  "",
-  "normal",
-  "fire",
-  "water",
-  "grass",
-  "electric",
-  "ice",
-  "fighting",
-  "poison",
-  "ground",
-  "flying",
-  "psychic",
-  "bug",
-  "rock",
-  "ghost",
-  "dragon",
-  "dark",
-  "steel",
-  "fairy",
-];
 
 // Função para transformar os dados do Pokémon no formato necessário
 const formatPokemonData = (data) => ({
