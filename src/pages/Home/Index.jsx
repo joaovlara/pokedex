@@ -18,7 +18,6 @@ import { getPokemonByNameOrId } from "@/services/pokemonService";
 
 const BATCH_SIZE = 20;
 
-// Função para transformar os dados do Pokémon no formato necessário
 const formatPokemonData = (data) => ({
   id: data.id,
   name: data.name,
@@ -45,11 +44,21 @@ const Layout = () => {
   const [searchResult, setSearchResult] = useState(null);
   const [typeFilter, setTypeFilter] = useState("");
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
-  const [favorites, setFavorites] = useState(new Set());
+
+  // Inicialização do estado favorites lendo do localStorage com tratamento de erro
+  const [favorites, setFavorites] = useState(() => {
+    try {
+      const stored = localStorage.getItem("favorites");
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch (error) {
+      console.error("Erro ao carregar favoritos do localStorage:", error);
+      return new Set();
+    }
+  });
+
   const [isModalOpen, setModalOpen] = useState(false);
   const [selectedPokemon, setSelectedPokemon] = useState(null);
 
-  // Carregar pokedex ao montar
   useEffect(() => {
     const loadPokedex = async () => {
       try {
@@ -63,20 +72,17 @@ const Layout = () => {
     loadPokedex();
   }, []);
 
-  // Carregar favoritos do localStorage ao montar
-  useEffect(() => {
-    const stored = localStorage.getItem("favorites");
-    if (stored) {
-      setFavorites(new Set(JSON.parse(stored)));
-    }
-  }, []);
 
-  // Salvar favoritos no localStorage sempre que mudam
+  // Salva favoritos no localStorage
   useEffect(() => {
-    localStorage.setItem("favorites", JSON.stringify([...favorites]));
+    console.log("Atualizando favoritos no localStorage:", [...favorites]);
+    try {
+      localStorage.setItem("favorites", JSON.stringify([...favorites]));
+    } catch (error) {
+      console.error("Erro ao salvar favoritos no localStorage:", error);
+    }
   }, [favorites]);
 
-  // Função para carregar próximo lote de pokémons
   const fetchNextBatch = useCallback(async () => {
     if (loading) return;
     setLoading(true);
@@ -92,14 +98,12 @@ const Layout = () => {
     }
   }, [pokedex, currentIndex, loading]);
 
-  // Carregar primeiro lote quando pokedex estiver disponível
   useEffect(() => {
     if (pokedex.length > 0 && currentIndex === 0) {
       fetchNextBatch();
     }
   }, [pokedex, currentIndex, fetchNextBatch]);
 
-  // Buscar Pokémon pelo termo digitado
   const handleSearch = useCallback(async () => {
     if (!searchTerm.trim()) {
       setSearchResult(null);
@@ -127,20 +131,19 @@ const Layout = () => {
     [handleSearch]
   );
 
-  // Alternar favorito
   const toggleFavorite = useCallback(
     (pokemonId) => {
       setFavorites((prev) => {
         const updated = new Set(prev);
         if (updated.has(pokemonId)) updated.delete(pokemonId);
         else updated.add(pokemonId);
+        console.log("toggleFavorite:", pokemonId, [...updated]);
         return updated;
       });
     },
     []
   );
 
-  // Aplicar filtros
   const filteredPokemons = useMemo(() => {
     const baseList = searchResult ? [searchResult] : pokemonsData;
     return baseList.filter((pokemon) => {
@@ -152,7 +155,7 @@ const Layout = () => {
 
   const abrirModal = async (pokemon) => {
     try {
-      const fullData = await getPokemonByNameOrId(pokemon.name); // ou pokemon.id
+      const fullData = await getPokemonByNameOrId(pokemon.name);
       setSelectedPokemon(fullData);
       setModalOpen(true);
     } catch (error) {
@@ -169,7 +172,7 @@ const Layout = () => {
     <Container>
       <MainContent>
         <SearchInput
-          placeholder="Buscar pokémon por nome ou ID"
+          placeholder="Search Pokémon by name or ID"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -198,10 +201,15 @@ const Layout = () => {
               types={pokemon.types}
               isFavorite={favorites.has(pokemon.id)}
               onToggleFavorite={() => toggleFavorite(pokemon.id)}
-              onClick={() => abrirModal(pokemon)}  // <- aqui
+              onClick={() => abrirModal(pokemon)}
             />
           ))}
         </GridContainer>
+        {!searchResult && currentIndex < pokedex.length && !showOnlyFavorites && (
+          <LoadMoreButton onClick={fetchNextBatch} disabled={loading}>
+            {loading ? "Carregando..." : "Carregar mais"}
+          </LoadMoreButton>
+        )}
         {isModalOpen && selectedPokemon && (
           <Modal isOpen={isModalOpen} onClose={fecharModal}>
             <PokemonDetail

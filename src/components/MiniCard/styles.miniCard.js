@@ -3,10 +3,10 @@ import styled from "styled-components";
 export const Card = styled.div`
   display: flex;
   align-items: center;
-  background-color: #F4E5EFFF;
   border-radius: 16px;
   position: relative;
   overflow: hidden;
+  border: solid 1px #ADA8BDFF;
   height: 100px;
 
     &:hover {

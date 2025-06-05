@@ -45,12 +45,12 @@ const PokemonDetail = ({ pokemon, isFavorite, onToggleFavorite }) => {
         </div>
       </Header>
       <Section>
-        <strong>Altura:</strong> {height / 10} m <br />
-        <strong>Peso:</strong> {weight / 10} kg
+        <strong>Height:</strong> {height / 10} m <br />
+        <strong>Weight:</strong> {weight / 10} kg
       </Section>
 
       <Section>
-        <strong>Habilidades:</strong> {abilities.map((a) => a.ability.name).join(", ")}
+        <strong>Abilities:</strong> {abilities.map((a) => a.ability.name).join(", ")}
       </Section>
 
       <Section>
