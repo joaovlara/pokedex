@@ -52,7 +52,7 @@ const typeIcons = {
 };
 
 
-const MiniCard = ({ id, name, sprite, types, }) => {
+const MiniCard = ({ id, name, sprite, types, isFavorite, onToggleFavorite }) => {
     return (
         <Card>
             <InfoSection>
@@ -73,7 +73,9 @@ const MiniCard = ({ id, name, sprite, types, }) => {
             </InfoSection>
             <ImageSection>
                 <Sprite src={sprite} alt={name} />
-                <FavoriteIcon>❤️</FavoriteIcon>
+                <FavoriteIcon isFavorite={isFavorite} onClick={onToggleFavorite}>
+                    {isFavorite ? "★" : "☆"}
+                </FavoriteIcon>
             </ImageSection>
         </Card>
     );

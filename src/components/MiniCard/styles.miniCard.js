@@ -67,10 +67,15 @@ export const Sprite = styled.img`
 `;
 
 export const FavoriteIcon = styled.button`
+  font-size: 28px;
   position: absolute;
   top: 8px;
   right: 8px;
   background: transparent;
+  color: ${({ isFavorite }) => (isFavorite ? "#f5b301" : "#ccc")};
   border: none;
   cursor: pointer;
+    &:hover {
+    transform: scale(2);
+  }
 `;

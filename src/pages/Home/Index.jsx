@@ -62,6 +62,23 @@ const Layout = () => {
       setIsLoading(false);
     }
   };
+  const [favorites, setFavorites] = useState(() => {
+    const stored = localStorage.getItem("favorites");
+    return stored ? new Set(JSON.parse(stored)) : new Set();
+  });
+
+  const toggleFavorite = (pokemonId) => {
+    setFavorites((prev) => {
+      const updated = new Set(prev);
+      if (updated.has(pokemonId)) {
+        updated.delete(pokemonId);
+      } else {
+        updated.add(pokemonId);
+      }
+      localStorage.setItem("favorites", JSON.stringify([...updated]));
+      return updated;
+    });
+  };
 
   return (
     <Container>
@@ -79,10 +96,11 @@ const Layout = () => {
               name={pokemon.name}
               sprite={pokemon.sprite}
               types={pokemon.types}
+              isFavorite={favorites.has(pokemon.id)}
+              onToggleFavorite={() => toggleFavorite(pokemon.id)}
             />
           ))}
         </GridContainer>
-
         {currentIndex < pokedex.length && (
           <LoadMoreButton onClick={fetchNextBatch} disabled={isLoading}>
             {isLoading ? "Carregando..." : "Carregar mais"}
