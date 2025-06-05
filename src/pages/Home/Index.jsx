@@ -207,7 +207,7 @@ const Layout = () => {
         </GridContainer>
         {!searchResult && currentIndex < pokedex.length && !showOnlyFavorites && (
           <LoadMoreButton onClick={fetchNextBatch} disabled={loading}>
-            {loading ? "Carregando..." : "Carregar mais"}
+            {loading ? "..." : "More"}
           </LoadMoreButton>
         )}
         {isModalOpen && selectedPokemon && (
