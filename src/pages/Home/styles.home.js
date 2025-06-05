@@ -40,3 +40,19 @@ export const GridContainer = styled.div`
     grid-template-columns: 1fr;
   }
 `;
+
+export const LoadMoreButton = styled.button`
+  margin: 2rem auto;
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  background-color: #3b4cca;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  display: block;
+
+  &:hover {
+    background-color: #2a3691;
+  }
+`;
