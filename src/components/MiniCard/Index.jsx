@@ -12,9 +12,9 @@ import {
   FavoriteIcon,
 } from "./styles.miniCard";
 
-const MiniCard = ({ id, name, sprite, types, isFavorite, onToggleFavorite }) => {
+const MiniCard = ({ id, name, sprite, types, isFavorite, onToggleFavorite, onClick }) => {
   return (
-    <Card>
+    <Card onClick={onClick}>
       <InfoSection>
         <Number>Nº{String(id).padStart(3, "0")}</Number>
         <Name>{name}</Name>
@@ -32,7 +32,13 @@ const MiniCard = ({ id, name, sprite, types, isFavorite, onToggleFavorite }) => 
       </InfoSection>
       <ImageSection>
         <Sprite src={sprite} alt={name} />
-        <FavoriteIcon isFavorite={isFavorite} onClick={onToggleFavorite}>
+        <FavoriteIcon
+          isFavorite={isFavorite}
+          onClick={(e) => {
+            e.stopPropagation(); // evita disparar o onClick do Card
+            onToggleFavorite();
+          }}
+        >
           {isFavorite ? "★" : "☆"}
         </FavoriteIcon>
       </ImageSection>

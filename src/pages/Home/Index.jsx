@@ -11,6 +11,7 @@ import {
   FavoritesButton,
 } from "./styles.home";
 import MiniCard from "@/components/MiniCard/Index";
+import Modal from "@/components/Modal/Index";
 import { getKantoPokedex } from "@/services/pokedexService";
 import { getPokemonByNameOrId } from "@/services/pokemonService";
 
@@ -44,6 +45,8 @@ const Layout = () => {
   const [typeFilter, setTypeFilter] = useState("");
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
   const [favorites, setFavorites] = useState(new Set());
+  const [isModalOpen, setModalOpen] = useState(false);
+  const [selectedPokemon, setSelectedPokemon] = useState(null);
 
   // Carregar pokedex ao montar
   useEffect(() => {
@@ -146,6 +149,15 @@ const Layout = () => {
     });
   }, [searchResult, pokemonsData, typeFilter, showOnlyFavorites, favorites]);
 
+  const abrirModal = (pokemon) => {
+    setSelectedPokemon(pokemon);
+    setModalOpen(true);
+  };
+  const fecharModal = () => {
+    setSelectedPokemon(null);
+    setModalOpen(false);
+  };
+
   return (
     <Container>
       <MainContent>
@@ -179,10 +191,17 @@ const Layout = () => {
               types={pokemon.types}
               isFavorite={favorites.has(pokemon.id)}
               onToggleFavorite={() => toggleFavorite(pokemon.id)}
+              onClick={() => abrirModal(pokemon)}  // <- aqui
             />
           ))}
         </GridContainer>
-
+        {isModalOpen && selectedPokemon && (
+          <Modal isOpen={isModalOpen} onClose={fecharModal}>
+            <h2>{selectedPokemon.name}</h2>
+            <img src={selectedPokemon.sprite} alt={selectedPokemon.name} />
+            <p>Tipos: {selectedPokemon.types.join(", ")}</p>
+          </Modal>
+        )}
         {!searchResult && currentIndex < pokedex.length && !showOnlyFavorites && (
           <LoadMoreButton onClick={fetchNextBatch} disabled={loading}>
             {loading ? "..." : "More"}
