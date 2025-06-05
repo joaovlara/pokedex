@@ -19,5 +19,23 @@ export const ModalContent = styled.div`
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  padding: 1%;
+  padding: 2rem;
+  position: relative;
+`;
+
+export const CloseButton = styled.button`
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: transparent;
+  border: none;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #555;
+
+  &:hover {
+    color: #000;
+    transform: scale(1.2);
+  }
 `;
