@@ -8,9 +8,10 @@ import {
   StatList,
   StatItem,
   TypeBadge,
+  FavoriteButton
 } from "./styles.pokemonDetail";
 
-const PokemonDetail = ({ pokemon }) => {
+const PokemonDetail = ({ pokemon, isFavorite, onToggleFavorite }) => {
   if (!pokemon) return null;
 
   const { id, name, height, weight, sprites, types, abilities, stats } = pokemon;
@@ -23,10 +24,18 @@ const PokemonDetail = ({ pokemon }) => {
           alt={name}
         />
         <div>
-          <Title>
-            {name} <span>#{String(id).padStart(3, "0")}</span>
-          </Title>
-          <div>
+          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+            <Title>
+              {name} <span>#{String(id).padStart(3, "0")}</span>
+            </Title>
+
+            {/* Botão de favorito ao lado do nome */}
+            <FavoriteButton onClick={() => onToggleFavorite(id)}>
+              {isFavorite ? "★" : "☆"}
+            </FavoriteButton>
+          </div>
+
+          <div style={{ marginTop: "0.5rem" }}>
             {types.map((type) => (
               <TypeBadge key={type.type.name} type={type.type.name}>
                 {type.type.name}
@@ -35,7 +44,6 @@ const PokemonDetail = ({ pokemon }) => {
           </div>
         </div>
       </Header>
-
       <Section>
         <strong>Altura:</strong> {height / 10} m <br />
         <strong>Peso:</strong> {weight / 10} kg

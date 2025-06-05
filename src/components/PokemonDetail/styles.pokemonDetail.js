@@ -58,3 +58,16 @@ export const TypeBadge = styled.span`
   font-size: 14px;
   text-transform: capitalize;
 `;
+
+export const FavoriteButton = styled.button`
+  background: none;
+  border: none;
+  font-size: 4rem;
+  cursor: pointer;
+  color: gold;
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: scale(1.1);
+  }
+`;

@@ -204,13 +204,12 @@ const Layout = () => {
         </GridContainer>
         {isModalOpen && selectedPokemon && (
           <Modal isOpen={isModalOpen} onClose={fecharModal}>
-            <PokemonDetail pokemon={selectedPokemon} />
+            <PokemonDetail
+              pokemon={selectedPokemon}
+              isFavorite={favorites.has(selectedPokemon.id)}
+              onToggleFavorite={toggleFavorite}
+            />
           </Modal>
-        )}
-        {!searchResult && currentIndex < pokedex.length && !showOnlyFavorites && (
-          <LoadMoreButton onClick={fetchNextBatch} disabled={loading}>
-            {loading ? "..." : "More"}
-          </LoadMoreButton>
         )}
       </MainContent>
     </Container>
