@@ -1,27 +1,73 @@
-import React, { useEffect, useState } from "react";
-import { Container, MainContent, SearchInput, Dropdown, GridContainer, LoadMoreButton, FilterBar, FavoritesButton } from "./styles.home";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
+import {
+  Container,
+  MainContent,
+  SearchInput,
+  Dropdown,
+  GridContainer,
+  LoadMoreButton,
+  FilterBar,
+  FavoritesButton,
+} from "./styles.home";
 import MiniCard from "@/components/MiniCard/Index";
 import { getKantoPokedex } from "@/services/pokedexService";
 import { getPokemonByNameOrId } from "@/services/pokemonService";
 
 const BATCH_SIZE = 20;
+const POKEMON_TYPES = [
+  "",
+  "normal",
+  "fire",
+  "water",
+  "grass",
+  "electric",
+  "ice",
+  "fighting",
+  "poison",
+  "ground",
+  "flying",
+  "psychic",
+  "bug",
+  "rock",
+  "ghost",
+  "dragon",
+  "dark",
+  "steel",
+  "fairy",
+];
+
+// Função para transformar os dados do Pokémon no formato necessário
+const formatPokemonData = (data) => ({
+  id: data.id,
+  name: data.name,
+  sprite: data.sprites.front_default,
+  types: data.types.map((t) => t.type.name),
+});
+
+const fetchPokemonsBatch = async (namesBatch) => {
+  const pokemons = await Promise.all(
+    namesBatch.map(async (name) => {
+      const data = await getPokemonByNameOrId(name);
+      return formatPokemonData(data);
+    })
+  );
+  return pokemons;
+};
 
 const Layout = () => {
   const [pokedex, setPokedex] = useState([]);
   const [pokemonsData, setPokemonsData] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResult, setSearchResult] = useState(null);
   const [typeFilter, setTypeFilter] = useState("");
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
-  const [favorites, setFavorites] = useState(() => {
-    const stored = localStorage.getItem("favorites");
-    return stored ? new Set(JSON.parse(stored)) : new Set();
-  });
+  const [favorites, setFavorites] = useState(new Set());
 
+  // Carregar pokedex ao montar
   useEffect(() => {
-    const fetchPokedexNames = async () => {
+    const loadPokedex = async () => {
       try {
         const response = await getKantoPokedex();
         const names = response.map((entry) => entry.pokemon_species.name);
@@ -30,113 +76,95 @@ const Layout = () => {
         console.error("Erro ao carregar pokédex:", error);
       }
     };
-
-    fetchPokedexNames();
+    loadPokedex();
   }, []);
 
+  // Carregar favoritos do localStorage ao montar
   useEffect(() => {
-    if (pokedex.length > 0) {
-      fetchNextBatch();
+    const stored = localStorage.getItem("favorites");
+    if (stored) {
+      setFavorites(new Set(JSON.parse(stored)));
     }
-  }, [pokedex]);
+  }, []);
 
-  const fetchNextBatch = async () => {
-    if (isLoading) return;
-    setIsLoading(true);
+  // Salvar favoritos no localStorage sempre que mudam
+  useEffect(() => {
+    localStorage.setItem("favorites", JSON.stringify([...favorites]));
+  }, [favorites]);
 
-    const nextBatch = pokedex.slice(currentIndex, currentIndex + BATCH_SIZE);
-
+  // Função para carregar próximo lote de pokémons
+  const fetchNextBatch = useCallback(async () => {
+    if (loading) return;
+    setLoading(true);
     try {
-      const newPokemons = await Promise.all(
-        nextBatch.map(async (name) => {
-          const data = await getPokemonByNameOrId(name);
-          return {
-            id: data.id,
-            name: data.name,
-            sprite: data.sprites.front_default,
-            types: data.types.map((t) => t.type.name),
-          };
-        })
-      );
-
+      const nextBatch = pokedex.slice(currentIndex, currentIndex + BATCH_SIZE);
+      const newPokemons = await fetchPokemonsBatch(nextBatch);
       setPokemonsData((prev) => [...prev, ...newPokemons]);
       setCurrentIndex((prev) => prev + BATCH_SIZE);
     } catch (error) {
       console.error("Erro ao carregar dados dos pokémons:", error);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
-  };
+  }, [pokedex, currentIndex, loading]);
 
-  const toggleFavorite = (pokemonId) => {
-    setFavorites((prev) => {
-      const updated = new Set(prev);
-      if (updated.has(pokemonId)) {
-        updated.delete(pokemonId);
-      } else {
-        updated.add(pokemonId);
-      }
-      localStorage.setItem("favorites", JSON.stringify([...updated]));
-      return updated;
-    });
-  };
+  // Carregar primeiro lote quando pokedex estiver disponível
+  useEffect(() => {
+    if (pokedex.length > 0 && currentIndex === 0) {
+      fetchNextBatch();
+    }
+  }, [pokedex, currentIndex, fetchNextBatch]);
 
-  const handleSearch = async () => {
+  // Buscar Pokémon pelo termo digitado
+  const handleSearch = useCallback(async () => {
     if (!searchTerm.trim()) {
       setSearchResult(null);
       return;
     }
-
-    setIsLoading(true);
+    setLoading(true);
     try {
       const data = await getPokemonByNameOrId(searchTerm.toLowerCase());
-      const pokemon = {
-        id: data.id,
-        name: data.name,
-        sprite: data.sprites.front_default,
-        types: data.types.map((t) => t.type.name),
-      };
-      setSearchResult(pokemon);
-    } catch (error) {
+      setSearchResult(formatPokemonData(data));
+    } catch {
       setSearchResult(null);
-      console.error("Pokémon não encontrado", error);
+      console.error("Pokémon não encontrado");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
-  };
+  }, [searchTerm]);
 
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleSearch();
-    }
-  };
+  const handleKeyDown = useCallback(
+    (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleSearch();
+      }
+    },
+    [handleSearch]
+  );
 
-  const pokemonTypes = [
-    "",
-    "normal", "fire", "water", "grass", "electric",
-    "ice", "fighting", "poison", "ground", "flying",
-    "psychic", "bug", "rock", "ghost", "dragon",
-    "dark", "steel", "fairy"
-  ];
+  // Alternar favorito
+  const toggleFavorite = useCallback(
+    (pokemonId) => {
+      setFavorites((prev) => {
+        const updated = new Set(prev);
+        if (updated.has(pokemonId)) updated.delete(pokemonId);
+        else updated.add(pokemonId);
+        return updated;
+      });
+    },
+    []
+  );
 
-  const applyFilters = (pokemons) => {
-    let filtered = [...pokemons];
-
-    if (typeFilter) {
-      filtered = filtered.filter((pokemon) =>
-        pokemon.types.includes(typeFilter)
-      );
-    }
-
-    if (showOnlyFavorites) {
-      filtered = filtered.filter((pokemon) => favorites.has(pokemon.id));
-    }
-
-    return filtered;
-  };
-
-  const displayPokemons = applyFilters(searchResult ? [searchResult] : pokemonsData);
+  // Aplicar filtros
+  const filteredPokemons = useMemo(() => {
+    const baseList = searchResult ? [searchResult] : pokemonsData;
+    return baseList.filter((pokemon) => {
+      const matchesType = typeFilter ? pokemon.types.includes(typeFilter) : true;
+      const matchesFavorite = showOnlyFavorites ? favorites.has(pokemon.id) : true;
+      return matchesType && matchesFavorite;
+    });
+  }, [searchResult, pokemonsData, typeFilter, showOnlyFavorites, favorites]);
 
   return (
     <Container>
@@ -147,28 +175,22 @@ const Layout = () => {
           onChange={(e) => setSearchTerm(e.target.value)}
           onKeyDown={handleKeyDown}
         />
-
         <FilterBar>
-          <Dropdown
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-          >
-            {pokemonTypes.map((type) => (
+          <Dropdown value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
+            {POKEMON_TYPES.map((type) => (
               <option key={type} value={type}>
                 {type ? type.charAt(0).toUpperCase() + type.slice(1) : "Tipo"}
               </option>
             ))}
           </Dropdown>
 
-          <FavoritesButton
-            onClick={() => setShowOnlyFavorites((prev) => !prev)}
-            active={showOnlyFavorites}
-          >
+          <FavoritesButton onClick={() => setShowOnlyFavorites((prev) => !prev)} active={showOnlyFavorites}>
             {showOnlyFavorites ? "Favoritos ativos" : "Favoritos"}
           </FavoritesButton>
         </FilterBar>
+
         <GridContainer>
-          {displayPokemons.map((pokemon) => (
+          {filteredPokemons.map((pokemon) => (
             <MiniCard
               key={pokemon.id}
               id={pokemon.id}
@@ -180,9 +202,10 @@ const Layout = () => {
             />
           ))}
         </GridContainer>
+
         {!searchResult && currentIndex < pokedex.length && !showOnlyFavorites && (
-          <LoadMoreButton onClick={fetchNextBatch} disabled={isLoading}>
-            {isLoading ? "Carregando..." : "Carregar mais"}
+          <LoadMoreButton onClick={fetchNextBatch} disabled={loading}>
+            {loading ? "Carregando..." : "Carregar mais"}
           </LoadMoreButton>
         )}
       </MainContent>
