@@ -1,10 +1,13 @@
-import React from 'react'
+import React from 'react';
+import { Outlet } from "react-router-dom";
+import { ThemeProvider } from 'styled-components';
+import { theme } from './theme/theme';
 
 const App = () => {
   return (
-    <div>
-        app
-    </div>
+    <ThemeProvider theme={theme}>
+      <Outlet />
+    </ThemeProvider>
   )
 }
 

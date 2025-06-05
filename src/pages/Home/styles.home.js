@@ -1,0 +1,42 @@
+import styled from "styled-components";
+
+export const Container = styled.div`
+  display: flex;
+`;
+
+export const MainContent = styled.main`
+  flex: 1;
+  padding: 24px;
+  background-color: #f9f9f9;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+`;
+
+export const SearchInput = styled.input`
+  width: 100%;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 20px;
+  font-size: 16px;
+  background-color: #dedede;
+`;
+
+export const Dropdown = styled.select`
+  width: 180px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  border: none;
+  background-color: #dedede;
+  font-size: 16px;
+`;
+
+export const GridContainer = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+`;
