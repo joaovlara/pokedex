@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import Sidebar from "@/components/sideBar/Index";
+import React, { useEffect, useState } from "react";
 import {
   Container,
   MainContent,
@@ -8,16 +7,48 @@ import {
   GridContainer,
 } from "./styles.home";
 import MiniCard from "@/components/MiniCard/Index";
-
-const bulbasaur = {
-  id: 1,
-  name: "bulbasaur",
-  sprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png",
-  types: ["grass", "poison"],
-};
+import { getKantoPokedex } from "@/services/pokedexService";
+import { getPokemonByName } from "@/services/pokemonService";
+import { saveToLocalStorage, loadFromLocalStorage } from "@/utils/localStorage";
 
 const Layout = () => {
   const [favorites, setFavorites] = useState(new Set());
+  const [pokemonList, setPokemonList] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        //carrega nomes do localStorage ou API
+        let names = loadFromLocalStorage("kanto_pokedex");
+        if (!names) {
+          const entries = await getKantoPokedex();
+          names = entries.map((entry) => entry.pokemon_species.name);
+          saveToLocalStorage("kanto_pokedex", names);
+        }
+
+        const first20 = names.slice(0, 20);
+
+        //busca detalhes de cada Pokémon
+        const pokemonDetails = await Promise.all(
+          first20.map(async (name) => {
+            const data = await getPokemonByName(name);
+            return {
+              id: data.id,
+              name: data.name,
+              sprite: data.sprites.front_default,
+              types: data.types.map((t) => t.type.name),
+            };
+          })
+        );
+
+        setPokemonList(pokemonDetails);
+      } catch (error) {
+        console.error("Erro ao carregar pokémons:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const toggleFavorite = (index) => {
     setFavorites((prev) => {
@@ -31,19 +62,15 @@ const Layout = () => {
     });
   };
 
-  // Criar array com 20 Bulbasaurs
-  const bulbasaur20x = Array(20).fill(bulbasaur);
-
   return (
     <Container>
-      {/* <Sidebar /> */}
       <MainContent>
         <SearchInput placeholder="Buscar pokemon" />
         <Dropdown>
           <option value="">Tipo</option>
         </Dropdown>
         <GridContainer>
-          {bulbasaur20x.map((pokemon, index) => (
+          {pokemonList.map((pokemon, index) => (
             <MiniCard
               key={index}
               id={pokemon.id}
