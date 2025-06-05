@@ -75,7 +75,6 @@ yarn run dev
 
 5. Abra o navegador e acesse o endereço mostrado no terminal
 
----
 
 ---
 
