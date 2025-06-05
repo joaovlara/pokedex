@@ -159,13 +159,13 @@ const Layout = () => {
           <Dropdown value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
             {POKEMON_TYPES.map((type) => (
               <option key={type} value={type}>
-                {type ? type.charAt(0).toUpperCase() + type.slice(1) : "Tipo"}
+                {type ? type.charAt(0).toUpperCase() + type.slice(1) : "Type"}
               </option>
             ))}
           </Dropdown>
 
           <FavoritesButton onClick={() => setShowOnlyFavorites((prev) => !prev)} active={showOnlyFavorites}>
-            {showOnlyFavorites ? "Favoritos ativos" : "Favoritos"}
+            {showOnlyFavorites ? "My Favorites" : "Favorites"}
           </FavoritesButton>
         </FilterBar>
 
@@ -185,7 +185,7 @@ const Layout = () => {
 
         {!searchResult && currentIndex < pokedex.length && !showOnlyFavorites && (
           <LoadMoreButton onClick={fetchNextBatch} disabled={loading}>
-            {loading ? "Carregando..." : "Carregar mais"}
+            {loading ? "..." : "More"}
           </LoadMoreButton>
         )}
       </MainContent>

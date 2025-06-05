@@ -70,4 +70,10 @@ export const FavoritesButton = styled.button`
   border: none;
   cursor: pointer;
   font-weight: bold;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    background-color: ${({ active }) => (active ? "#977613FF" : "#d5d5d5")};
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  }
 `;

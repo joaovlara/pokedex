@@ -32,6 +32,7 @@ export const Name = styled.h3`
   font-size: 18px;
   margin: 0 0 8px 0;
   color: #000;
+  text-transform: capitalize;
 `;
 
 export const Types = styled.div`
