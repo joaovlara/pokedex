@@ -45,7 +45,6 @@ const Layout = () => {
   const [typeFilter, setTypeFilter] = useState("");
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
 
-  // Inicialização do estado favorites lendo do localStorage com tratamento de erro
   const [favorites, setFavorites] = useState(() => {
     try {
       const stored = localStorage.getItem("favorites");
@@ -72,10 +71,7 @@ const Layout = () => {
     loadPokedex();
   }, []);
 
-
-  // Salva favoritos no localStorage
   useEffect(() => {
-    console.log("Atualizando favoritos no localStorage:", [...favorites]);
     try {
       localStorage.setItem("favorites", JSON.stringify([...favorites]));
     } catch (error) {
@@ -104,32 +100,33 @@ const Layout = () => {
     }
   }, [pokedex, currentIndex, fetchNextBatch]);
 
-  const handleSearch = useCallback(async () => {
-    if (!searchTerm.trim()) {
-      setSearchResult(null);
-      return;
-    }
-    setLoading(true);
-    try {
-      const data = await getPokemonByNameOrId(searchTerm.toLowerCase());
-      setSearchResult(formatPokemonData(data));
-    } catch {
-      setSearchResult(null);
-      console.error("Pokémon não encontrado");
-    } finally {
-      setLoading(false);
-    }
-  }, [searchTerm]);
-
-  const handleKeyDown = useCallback(
-    (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        handleSearch();
+  // Busca automática com debounce ao digitar
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      const trimmed = searchTerm.trim();
+      if (trimmed === "") {
+        setSearchResult(null);
+        return;
       }
-    },
-    [handleSearch]
-  );
+
+      const fetchData = async () => {
+        setLoading(true);
+        try {
+          const data = await getPokemonByNameOrId(trimmed.toLowerCase());
+          setSearchResult(formatPokemonData(data));
+        } catch (error) {
+          console.error("Pokémon não encontrado:", error);
+          setSearchResult(null);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchData();
+    }, 500);
+
+    return () => clearTimeout(delayDebounce);
+  }, [searchTerm]);
 
   const toggleFavorite = useCallback(
     (pokemonId) => {
@@ -137,7 +134,6 @@ const Layout = () => {
         const updated = new Set(prev);
         if (updated.has(pokemonId)) updated.delete(pokemonId);
         else updated.add(pokemonId);
-        console.log("toggleFavorite:", pokemonId, [...updated]);
         return updated;
       });
     },
@@ -175,7 +171,6 @@ const Layout = () => {
           placeholder="Search Pokémon by name or ID"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          onKeyDown={handleKeyDown}
         />
         <FilterBar>
           <Dropdown value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
@@ -205,11 +200,13 @@ const Layout = () => {
             />
           ))}
         </GridContainer>
+
         {!searchResult && currentIndex < pokedex.length && !showOnlyFavorites && (
           <LoadMoreButton onClick={fetchNextBatch} disabled={loading}>
             {loading ? "..." : "More"}
           </LoadMoreButton>
         )}
+
         {isModalOpen && selectedPokemon && (
           <Modal isOpen={isModalOpen} onClose={fecharModal}>
             <PokemonDetail
